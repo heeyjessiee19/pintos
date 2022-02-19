@@ -92,8 +92,6 @@ struct thread
     int64_t Sleep_ticks;
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
-    //atributo de tipo entero que represente el tiempo para que el thread permanezca dormido.
-    uint64_t schlaf;
 
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
