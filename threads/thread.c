@@ -19,6 +19,10 @@
    Used to detect stack overflow.  See the big comment at the top
    of thread.h for details. */
 #define THREAD_MAGIC 0xcd6abf4b
+//lista de threads en espera
+static struct list bereit;
+
+
 
 /* List of processes in THREAD_READY state, that is, processes
    that are ready to run but not actually running. */
@@ -71,6 +75,24 @@ static void schedule (void);
 void thread_schedule_tail (struct thread *prev);
 static tid_t allocate_tid (void);
 
+
+
+/*Función para insertar threads en lista*/
+void warten(int64_t ticks_end) {
+  struct thread *th = thread_current ();
+  th->schlaf = ticks_end;
+
+  list_push_back(&bereit, &th->waitelem);
+
+  thread_block();
+
+  //Habilitar interrupciones
+	intr_set_level (old_level);
+
+}
+
+
+
 /* Initializes the threading system by transforming the code
    that's currently running into a thread.  This can't work in
    general and it is possible in this case only because loader.S
@@ -92,6 +114,8 @@ thread_init (void)
   lock_init (&tid_lock);
   list_init (&ready_list);
   list_init (&all_list);
+  //inicialización de lista
+  list_init (&bereit);
 
   /* Set up a thread structure for the running thread. */
   initial_thread = running_thread ();
@@ -240,6 +264,10 @@ thread_unblock (struct thread *t)
   list_push_back (&ready_list, &t->elem);
   t->status = THREAD_READY;
   intr_set_level (old_level);
+
+  /*aqui quedamos 8:10pm 9/02*/
+  if()
+
 }
 
 /* Returns the name of the running thread. */

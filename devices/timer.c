@@ -91,9 +91,22 @@ timer_sleep (int64_t ticks)
 {
   int64_t start = timer_ticks ();
 
+  struct thread *th = thread_current ();
+  if(ticks <= 0) {
+    return;
+  }
+
+  th->wakeup_time = timer_ticks () + ticks;
+
   ASSERT (intr_get_level () == INTR_ON);
-  while (timer_elapsed (start) < ticks) 
-    thread_yield ();
+  /*while (timer_elapsed (start) < ticks) 
+    thread_yield ();*/
+  //define el orden  de la función de threads
+  list_insert_ordered(&bereit);
+  //función que tome al thread actual, lo bloquee y lo inserte en la lista de espera que definimos en el paso anterior.
+  warten(ticks);
+
+  
 }
 
 /* Sleeps for approximately MS milliseconds.  Interrupts must be
@@ -172,6 +185,8 @@ timer_interrupt (struct intr_frame *args UNUSED)
 {
   ticks++;
   thread_tick ();
+
+  remove_thread(ticks);
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer
