@@ -60,7 +60,7 @@ timer_calibrate (void)
   /* Refine the next 8 bits of loops_per_tick. */
   high_bit = loops_per_tick;
   for (test_bit = high_bit >> 1; test_bit != high_bit >> 10; test_bit >>= 1)
-    if (!too_many_loops (loops_per_tick | test_bit))
+    if (!too_many_loops (high_bit | test_bit))
       loops_per_tick |= test_bit;
 
   printf ("%'"PRIu64" loops/s.\n", (uint64_t) loops_per_tick * TIMER_FREQ);
@@ -99,6 +99,7 @@ timer_sleep (int64_t ticks)
   th->wakeup_time = timer_ticks () + ticks;
 
   ASSERT (intr_get_level () == INTR_ON);
+<<<<<<< HEAD
   /*while (timer_elapsed (start) < ticks) 
     thread_yield ();*/
   //define el orden  de la función de threads
@@ -107,7 +108,13 @@ timer_sleep (int64_t ticks)
   warten(ticks);
 
   
+=======
+
+  insertar_en_sleep_list(start + ticks);
+ 
+>>>>>>> 1bb43cf3e0805af931d817955d08532e0d77d5cf
 }
+
 
 /* Sleeps for approximately MS milliseconds.  Interrupts must be
    turned on. */
@@ -185,8 +192,12 @@ timer_interrupt (struct intr_frame *args UNUSED)
 {
   ticks++;
   thread_tick ();
+<<<<<<< HEAD
 
   remove_thread(ticks);
+=======
+  remover_thread_durmiente(ticks);
+>>>>>>> 1bb43cf3e0805af931d817955d08532e0d77d5cf
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer

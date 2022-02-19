@@ -24,6 +24,8 @@ static struct list bereit;
 
 
 
+static struct list sleep_list;
+
 /* List of processes in THREAD_READY state, that is, processes
    that are ready to run but not actually running. */
 static struct list ready_list;
@@ -74,6 +76,7 @@ static void *alloc_frame (struct thread *, size_t size);
 static void schedule (void);
 void thread_schedule_tail (struct thread *prev);
 static tid_t allocate_tid (void);
+//static bool value_less (const struct list_elem *, const struct list_elem *, void *);
 
 
 
@@ -114,8 +117,13 @@ thread_init (void)
   lock_init (&tid_lock);
   list_init (&ready_list);
   list_init (&all_list);
+<<<<<<< HEAD
   //inicialización de lista
   list_init (&bereit);
+=======
+  list_init (&sleep_list);
+
+>>>>>>> 1bb43cf3e0805af931d817955d08532e0d77d5cf
 
   /* Set up a thread structure for the running thread. */
   initial_thread = running_thread ();
@@ -163,6 +171,36 @@ thread_tick (void)
     intr_yield_on_return ();
 }
 
+void
+insertar_en_sleep_list (int64_t ticks_fin)
+{
+  struct thread *t = thread_current();
+  t->Sleep_ticks = ticks_fin;
+
+
+  //list_insert_ordered(&sleep_list, &t->elem, value_less, thread_get_priority())
+
+  list_push_back(&sleep_list, &t->elem);
+
+  thread_block();
+}
+
+void
+remover_thread_durmiente (int64_t current_tick) {
+  struct list_elem *ele;
+
+  ASSERT (intr_get_level () == INTR_OFF);
+
+  for (ele = list_begin (&sleep_list); ele != list_end (&sleep_list); ele = list_next (ele))
+    {
+      struct thread *t = list_entry (ele, struct thread, elem);
+      if (t->Sleep_ticks <= current_tick) {
+        t->Sleep_ticks = 0;
+        list_remove (&t->elem);
+        thread_unblock (t);
+      }
+    }
+}
 /* Prints thread statistics. */
 void
 thread_print_stats (void) 
