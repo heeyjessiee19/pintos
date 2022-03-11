@@ -92,6 +92,10 @@ struct thread
     int64_t Sleep_ticks;
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
+    int prioridadactual;
+
+    int64_t recent_cpu;
+    int nice;
 
 #ifdef USERPROG
     /* Owned by userprog/process.c. */

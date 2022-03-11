@@ -103,6 +103,10 @@ thread_init (void)
   init_thread (initial_thread, "main", PRI_DEFAULT);
   initial_thread->status = THREAD_RUNNING;
   initial_thread->tid = allocate_tid ();
+
+  //aqui agregamos código
+  initial_thread->nice = 0;
+  initial_thread->recent_cpu = 0;
 }
 
 /* Starts preemptive thread scheduling by enabling interrupts.
@@ -378,11 +382,11 @@ thread_set_priority (int new_priority)
 
   //Si en caso la prioridad actual es = a la original, quiere decir que no hay donación
 
-  if(actualth->priority == actualth->priorityOriginal){
-    actualth->priorityOriginal = new_priority;
-    actualth->priority = new priority;
+  if(actualth->priority == actualth->prioridadactual){
+    actualth->prioridadactual = new_priority;
+    actualth->priority = new_priority;
   } else {
-    actualth->priorityOriginal = new_priority;
+    actualth->prioridadactual = new_priority;
   }
 
   if(!list_empty(&ready_list)){
@@ -412,7 +416,7 @@ thread_set_nice (int nice UNUSED)
 
   enum intr_level old_level = intr_disable ();
   thread_current()->nice = nice;
-  actualizar_thread_priority(thread_current(), NULL);
+  //actualizar_thread_priority(thread_current(), NULL);
   thread_yield(); 
   intr_set_level (old_level);
 
@@ -425,7 +429,28 @@ thread_get_nice (void)
   /* Not yet implemented. */
   /*return 0;*/
   return thread_current()->nice;
+  //return thread_mlfqs_get_nice (thread_current());
 }
+
+/*Aquí agregamos una función
+void actualizar_thread_priority(struct thread *t, void *aux){
+  if(t != idle_thread) {
+    priority = PRI_MAX - (recent_cpu / 4) - (nice * 2). 
+    int64_t recent_cpu = t->recent_cpu;
+    int nice = t->nice;
+      Convert n to fixed point:	n * f
+      Divide x by n:	x / n
+      Multiply x by n:	x * n
+      Add x and n:	x + n * f
+      Subtract y from x:	x - y
+    
+  
+    int priority = ROUND_X(SUB_X_Y(CONV_N(PRI_MAX),ADD_X_N(DIV_X_N(recent_cpu,4),(nice*2))));
+    if(priority > PRI_MAX) priority = PRI_MAX;
+    if(priority < PRI_MIN) priority = PRI_MIN;
+    t->priority = priority;
+  }
+}*/
 
 /* Returns 100 times the system load average. */
 int
