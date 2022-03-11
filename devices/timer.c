@@ -78,6 +78,8 @@ timer_ticks (void)
 
 /* Returns the number of timer ticks elapsed since THEN, which
    should be a value once returned by timer_ticks(). */
+
+//Devuelve el numero de ticks que han transcurrido desde que Pintos inició su ejecución.
 int64_t
 timer_elapsed (int64_t then) 
 {
@@ -86,17 +88,19 @@ timer_elapsed (int64_t then)
 
 /* Sleeps for approximately TICKS timer ticks.  Interrupts must
    be turned on. */
+
+// Suspende la ejecución del thread actual hasta que hayan transcurrido al menos el número de ticks recibidos como argumento.
 void
 timer_sleep (int64_t ticks) 
 {
   int64_t start = timer_ticks ();
 
   ASSERT (intr_get_level () == INTR_ON);
-
-  insertar_en_sleep_list(start + ticks);
- 
+  /*while (timer_elapsed (start) < ticks) 
+    thread_yield ();*/
+  if(ticks > 0)
+    insertar_en_lista_espera(ticks);
 }
-
 
 /* Sleeps for approximately MS milliseconds.  Interrupts must be
    turned on. */
@@ -169,12 +173,48 @@ timer_print_stats (void)
 }
 
 /* Timer interrupt handler. */
+//Es el reloj de Pintos. Cuando esta función sea llamada, la variable global ticks se incrementará en uno.
 static void
 timer_interrupt (struct intr_frame *args UNUSED)
 {
   ticks++;
   thread_tick ();
+
   remover_thread_durmiente(ticks);
+
+  /* 
+    Aqui debemos actualizar load_avg y recent_cpu 
+    priority: se vuelve a calcular una vez cada cuarto tic del reloj, para cada thread
+
+    recent_cpu: cada vez que ocurre una interrupción del temporizador, recent_cpu se 
+    incrementa en 1 solo para el thread en ejecución, recálculos de recent_cpu se 
+    realicen exactamente cuando el contador de ticks del sistema alcance un múltiplo 
+    de segundo, es decir, cuando timer_ticks () % TIMER_FREQ == 0
+
+    load_avg: es para todo el sistema, debe actualizarse exactamente cuando el contador 
+    de tics del sistema alcanza un múltiplo de un segundo, es decir, cuándo timer_ticks () % TIMER_FREQ == 0
+  */
+  if(thread_mlfqs){
+    //Actualizar recent_cpu del current_thread
+    actualizar_current_recent_cpu();
+
+    if(ticks%TIMER_FREQ == 0){
+      //actualizar load_avg, load_avg = (59/60) * load_avg + (1/60) * ready_threads
+      actualizar_load_avg();
+      //actualizar recent_cpu de todos los threads, !vamos a usar thread_foreach
+      enum intr_level old_level = intr_disable();
+      thread_foreach(actualizar_thread_recent_cpu, NULL);
+      intr_set_level(old_level); 
+      
+    } 
+    if(ticks%4 == 0){
+      //actualizar prioridades de todos los threads
+      enum intr_level old_level = intr_disable ();
+      thread_foreach(actualizar_thread_priority, NULL);
+      intr_set_level (old_level);
+      ordernar_ready_list();
+    }
+  }
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer
