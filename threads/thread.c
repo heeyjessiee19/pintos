@@ -409,6 +409,13 @@ void
 thread_set_nice (int nice UNUSED) 
 {
   /* Not yet implemented. */
+
+  enum intr_level old_level = intr_disable ();
+  thread_current()->nice = nice;
+  actualizar_thread_priority(thread_current(), NULL);
+  thread_yield(); 
+  intr_set_level (old_level);
+
 }
 
 /* Returns the current thread's nice value. */
@@ -416,7 +423,8 @@ int
 thread_get_nice (void) 
 {
   /* Not yet implemented. */
-  return 0;
+  /*return 0;*/
+  return thread_current()->nice;
 }
 
 /* Returns 100 times the system load average. */
