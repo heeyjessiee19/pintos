@@ -9,6 +9,7 @@ struct semaphore
   {
     unsigned value;             /* Current value. */
     struct list waiters;        /* List of waiting threads. */
+    int priority;               // Prioridad del semaforo
   };
 
 void sema_init (struct semaphore *, unsigned value);
@@ -22,6 +23,11 @@ struct lock
   {
     struct thread *holder;      /* Thread holding lock (for debugging). */
     struct semaphore semaphore; /* Binary semaphore controlling access. */
+    /* Como un thread puede tener una lista de locks, entonces para usar la lista, 
+      debemos establecer list_elem
+    */
+    struct list_elem elem_lock; 
+    int priority;               // Prioridad de el thread que tiene este el lock
   };
 
 void lock_init (struct lock *);
@@ -40,6 +46,25 @@ void cond_init (struct condition *);
 void cond_wait (struct condition *, struct lock *);
 void cond_signal (struct condition *, struct lock *);
 void cond_broadcast (struct condition *, struct lock *);
+
+
+/* Funcion auxiliar para ordenar la lista, comparara si la prioridad del thread 
+a es mayor a la de b, mayor prioridad en head */
+static bool ordenarMayorMenor(const struct list_elem *a,
+                             const struct list_elem *b,
+                             void *aux);
+
+/* Funcion auxiliar para ordenar la lista, comparara si la prioridad del lock 
+a es mayor a la de b, mayor prioridad en head */
+static bool ordenarMayorMenorLock(const struct list_elem *a,
+                             const struct list_elem *b,
+                             void *aux);
+
+/* Funcion auxiliar para ordenar la lista, comparara si la prioridad de la lista 
+del semaforo a es mayor a la de b, mayor prioridad en head */
+static bool ordenarMayorMenorSema(const struct list_elem *a,
+                             const struct list_elem *b,
+                             void *aux);
 
 /* Optimization barrier.
 
