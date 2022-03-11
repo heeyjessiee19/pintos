@@ -370,7 +370,31 @@ thread_foreach (thread_action_func *func, void *aux)
 void
 thread_set_priority (int new_priority) 
 {
+
   thread_current ()->priority = new_priority;
+
+  struct thread *actualth = thread_current();
+  struct thread *next;
+
+  //Si en caso la prioridad actual es = a la original, quiere decir que no hay donación
+
+  if(actualth->priority == actualth->priorityOriginal){
+    actualth->priorityOriginal = new_priority;
+    actualth->priority = new priority;
+  } else {
+    actualth->priorityOriginal = new_priority;
+  }
+
+  if(!list_empty(&ready_list)){
+    next = list_entry(list_begin(&ready_list), struct thread, elem);
+
+    if(next != NULL) {
+      if(next->priority > new_priority) {
+        thread_yield();
+      }
+    }
+  }
+
 }
 
 /* Returns the current thread's priority. */
