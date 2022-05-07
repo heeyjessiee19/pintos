@@ -1,6 +1,7 @@
 #ifndef THREADS_SYNCH_H
 #define THREADS_SYNCH_H
 
+/*Añadir un comentario*/
 #include <list.h>
 #include <stdbool.h>
 
